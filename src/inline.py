@@ -90,13 +90,15 @@ def extract_markdown_links(text):
     return matches
 
 def text_to_textnodes(text):
-    new_nodes = split_nodes_delimiter(text)
-    return new_nodes
+    old_node = TextNode(text, TextType.TEXT)
+    code_nodes = split_nodes_delimiter([old_node],"`",TextType.CODE)
+    bold_nodes = split_nodes_delimiter(code_nodes,"**",TextType.BOLD)
+    italic_nodes = split_nodes_delimiter(bold_nodes,"_",TextType.ITALIC)
+    image_nodes = split_nodes_image(italic_nodes)
+    link_nodes = split_nodes_link(image_nodes)
+    return link_nodes
 
 def main():
-    #text = "This is **text** and this is `a code snippet`"
-    #old_node = TextNode(text, TextType.TEXT)
-    #code_nodes = split_nodes_delimiter([old_node],"`",TextType.CODE)
-    #bold_nodes = split_nodes_delimiter([code_nodes],"**",TextType.BOLD)
-    #print(bold_nodes)
+    pass
+
 main()
