@@ -1,5 +1,6 @@
-from textnode import TextType, TextNode
-from htmlnode import HTMLNode
+from textnode import TextType, TextNode, text_node_to_html_node
+from htmlnode import HTMLNode, ParentNode, LeafNode
+from inline import text_to_textnodes
 import re
 from enum import Enum
 import textwrap
@@ -34,6 +35,72 @@ def check_ordered_list(block):
         i += 1
     return True
 
+def text_to_children(text):
+    text_nodes = text_to_textnodes(text)
+    children = []
+    for text_node in text_nodes:
+        html_node = text_node_to_html_node(text_node)
+        children.append(html_node)
+    return children
+
+def heading_to_html_node(block):
+    level = 0
+    for char in block:
+        if char == "#":
+            level += 1
+        else:
+            break
+    if level + 1 >= len(block):
+        raise ValueError(f"Invalid heading level: {level}")
+    text = block[level + 1:]
+    children = text_to_children(text)
+    return ParentNode(f"h{level}",children)
+
+def code_to_html_node(block):
+    if not block.startswith("```") or not block.endswith("```"):
+        raise ValueError("invalid code block")
+    text = block[4:-3]
+    raw_text_node = TextNode(text, TextType.TEXT)
+    child = text_node_to_html_node(raw_text_node)
+    code = ParentNode("code", [child])
+    return ParentNode("pre", [code])
+
+def quote_to_html_node(block):
+    lines = block.split("\n")
+    new_lines = []
+    for line in lines:
+        if not line.startswith(">"):
+            raise ValueError("invalid quote block")
+        new_lines.append(line.lstrip(">").strip())
+    content = " ".join(new_lines)
+    children = text_to_children(content)
+    return ParentNode("blockquote", children)
+
+def ul_to_html_node(block):
+    items = block.split("\n")
+    html_items = []
+    for item in items:
+        text = item[2:]
+        children = text_to_children(text)
+        html_items.append(ParentNode("li", children))
+    return ParentNode("ul", html_items)
+
+def ol_to_html_node(block):
+    items = block.split("\n")
+    html_items = []
+    for item in items:
+        text = item[3:]
+        children = text_to_children(text)
+        html_items.append(ParentNode("li", children))
+    return ParentNode("ol", html_items)
+
+def paragraph_to_html_node(block):
+    lines = block.split("\n")
+    paragraph = " ".join(lines)
+    children = text_to_children(paragraph)
+    return ParentNode("p", children)
+
+
 def block_to_block_type(block):
     #Heading must start with 1 - 6 #s
     if re.match(r"^#{1,6}(?!#)", block):
@@ -53,42 +120,38 @@ def block_to_block_type(block):
     return BlockType.PARAGRAPH
 
 #Takes a block and converts it into the correct HTML Node
-def block_to_html_node(block, block_type):
+def block_to_html_node(block):
+    block_type = block_to_block_type(block)
     match block_type:
         case BlockType.HEADING:
-            print("this is a heading")
-            node = HTMLNode(tag = "h", value = block, children = None, props = None)
+            return heading_to_html_node(block)
         case BlockType.CODE:
-            pass
+            return code_to_html_node(block)
         case BlockType.QUOTE:
-            print("this is a quote")
+            return quote_to_html_node(block)
         case BlockType.UNORDERED_LIST:
-            pass
+            return ul_to_html_node(block)
         case BlockType.ORDERED_LIST:
-            print("this is an ordered list")
+            return ol_to_html_node(block)
         case BlockType.PARAGRAPH:
-            print("this is a paragraph")
+            return paragraph_to_html_node(block)
     return
 
 
 def markdown_to_html_node(markdown):
     #split markdown into blocks
     blocks = markdown_to_blocks(markdown)
+    children= []
     # loop over each block
     for block in blocks:
-        #determine block type
-        block_type = block_to_block_type(block)
         #create HTMLNode
-        html_node = block_to_html_node(block, block_type)
-        #Assign children HTMLNodes to the block - use a helper
-    
-    #make all the block nodes children under a single parent HTML Node (Div) and return it
-    return
-
+        html_node = block_to_html_node(block)
+        children.append(html_node)
+    return ParentNode("div", children, None)
 
 def main():
     markdown = """
-###This is the heading
+### This is the heading
 
 
 1. this is an order
@@ -105,6 +168,6 @@ This is just a random paragraph
 
 """
 
-    markdown_to_html_node(markdown)
+    parent = markdown_to_html_node(markdown)
 
 main()
