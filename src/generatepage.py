@@ -1,6 +1,7 @@
 from block_markdown import markdown_to_html_node
 from htmlnode import ParentNode
 import os
+import shutil
 
 def extract_title(markdown_lines):
     heading = None
@@ -9,14 +10,11 @@ def extract_title(markdown_lines):
             heading = line[2:].strip()
     if heading == None:
         raise ValueError("Heading not found in file")
-    print(f"heading is {heading}")
     return heading
 
 def create_directories(dest_path):
     file_path = os.path.dirname(dest_path)
-    print(file_path)
     os.makedirs(file_path, mode=0o777, exist_ok=True)
-
 
 
 def generate_path(from_path, template_path, dest_path):
@@ -42,6 +40,25 @@ def generate_path(from_path, template_path, dest_path):
 
     #Write the html file to a destination file
     create_directories(dest_path)
+    print(f"dest path = {dest_path}")
+    if dest_path.endswith(".md"):
+        dest_path = dest_path.replace(".md",".html")
+    print(f"dest path = {dest_path}")
     dest_file = open(dest_path, mode='w')
     dest_file.write(template_contents)
     dest_file.close()
+
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    items_to_copy = os.listdir(path=dir_path_content)
+    print(items_to_copy)
+
+    if not os.path.exists(dir_path_content):
+        os.mkdir(dir_path_content)
+    for filename in os.listdir(path=dir_path_content):
+        from_path = os.path.join(dir_path_content, filename)
+        dest_path = os.path.join(dest_dir_path, filename)
+        print(f" * {from_path} -> {dest_path}")
+        if os.path.isfile(from_path):
+            generate_path(from_path,template_path, dest_path)
+        else:
+            generate_pages_recursive(from_path, template_path, dest_path)

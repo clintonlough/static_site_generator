@@ -1,5 +1,5 @@
 from copystatic import copy_directory_contents_recursive
-from generatepage import extract_title, generate_path
+from generatepage import generate_pages_recursive
 import shutil
 import os
 
@@ -17,11 +17,11 @@ def main():
 
     copy_static()
 
-    from_path = "./content/index.md"
+    dir_path_content = "./content"
     template_path = "./template.html"
-    dest_path = "./public/index.html"
+    dest_dir_path = "./public"
 
-    generate_path(from_path, template_path, dest_path)
+    generate_pages_recursive(dir_path_content, template_path, dest_dir_path)
 
 
 
