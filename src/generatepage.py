@@ -39,8 +39,8 @@ def generate_path(from_path, template_path, dest_path, basepath):
     template_contents = template_contents.replace("{{ Content }}",html_string)
 
     #set the basepath for hosting
-    template_contents = template_contents.replace('href="/', 'href="{basepath}')
-    template_contents = template_contents.replace('src="/', 'src="{basepath}')
+    template_contents = template_contents.replace('href="/', f'href="{basepath}')
+    template_contents = template_contents.replace('src="/', f'src="{basepath}')
 
     #Write the html file to a destination file
     create_directories(dest_path)
