@@ -17,7 +17,7 @@ def create_directories(dest_path):
     os.makedirs(file_path, mode=0o777, exist_ok=True)
 
 
-def generate_path(from_path, template_path, dest_path):
+def generate_path(from_path, template_path, dest_path, basepath):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
 
     #markdown_file = f"{from_path}"
@@ -38,17 +38,19 @@ def generate_path(from_path, template_path, dest_path):
     template_contents = template_contents.replace("{{ Title }}",title)
     template_contents = template_contents.replace("{{ Content }}",html_string)
 
+    #set the basepath for hosting
+    template_contents = template_contents.replace('href="/', 'href="{basepath}')
+    template_contents = template_contents.replace('src="/', 'src="{basepath}')
+
     #Write the html file to a destination file
     create_directories(dest_path)
-    print(f"dest path = {dest_path}")
     if dest_path.endswith(".md"):
         dest_path = dest_path.replace(".md",".html")
-    print(f"dest path = {dest_path}")
     dest_file = open(dest_path, mode='w')
     dest_file.write(template_contents)
     dest_file.close()
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
     items_to_copy = os.listdir(path=dir_path_content)
     print(items_to_copy)
 
@@ -59,6 +61,6 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
         dest_path = os.path.join(dest_dir_path, filename)
         print(f" * {from_path} -> {dest_path}")
         if os.path.isfile(from_path):
-            generate_path(from_path,template_path, dest_path)
+            generate_path(from_path,template_path, dest_path, basepath)
         else:
-            generate_pages_recursive(from_path, template_path, dest_path)
+            generate_pages_recursive(from_path, template_path, dest_path, basepath)

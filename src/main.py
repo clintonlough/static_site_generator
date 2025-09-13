@@ -2,26 +2,31 @@ from copystatic import copy_directory_contents_recursive
 from generatepage import generate_pages_recursive
 import shutil
 import os
+import sys
 
-def copy_static():
+def copy_static(dest_dir_path):
     #deletes the destination directory
-    print("Deleting destination directory...")
-    dest_dir = "./public"
+    print("Deleting destination directory...") 
     src_dir = "./static"
-    if os.path.exists(dest_dir):
-        shutil.rmtree(dest_dir)
+    if os.path.exists(dest_dir_path):
+        shutil.rmtree(dest_dir_path)
     print("Copying static files to destination directory...")
-    copy_directory_contents_recursive(src_dir, dest_dir)
+    copy_directory_contents_recursive(src_dir, dest_dir_path)
 
 def main():
 
-    copy_static()
+    if len(sys.argv) > 1:
+        basepath = sys.argv[1]
+    else: 
+        basepath = "/"
 
+    print(basepath)
     dir_path_content = "./content"
     template_path = "./template.html"
-    dest_dir_path = "./public"
+    dest_dir_path = "./docs"
 
-    generate_pages_recursive(dir_path_content, template_path, dest_dir_path)
+    copy_static(dest_dir_path)
+    generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath)
 
 
 
